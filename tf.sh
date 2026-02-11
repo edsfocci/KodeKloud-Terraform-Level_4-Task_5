@@ -21,9 +21,9 @@ ln -s /home/bob/terraform/variables.tf modules/ssm/variables.tf
 ln -s /home/bob/terraform/variables.tf modules/stepfunctions/variables.tf
 
 cat << EOF > terraform.tfvars
-KKE_SNS_TOPIC_NAME = "datacenter-sns-topic"
-KKE_SSM_PARAM_NAME = "datacenter-param"
-KKE_STEP_FUNCTION_NAME = "datacenter-stepfunction"
+KKE_SNS_TOPIC_NAME = "xfusion-sns-topic"
+KKE_SSM_PARAM_NAME = "xfusion-param"
+KKE_STEP_FUNCTION_NAME = "xfusion-stepfunction"
 EOF
 
 cat << EOF > outputs.tf
@@ -152,7 +152,7 @@ resource "aws_sfn_state_machine" "KKE_STEP_FUNCTION_NAME" {
       "Type": "Task",
       "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
       "Parameters": {
-        Name = var.KKE_SSM_PARAM_NAME
+        "Name": "xfusion-param"
       },
       "ResultSelector": {
         "SnsArn.\$": "\$.Parameter.Value"
