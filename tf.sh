@@ -98,7 +98,7 @@ cat << EOF > modules/ssm/main.tf
 resource "aws_ssm_parameter" "KKE_SSM_PARAM_NAME" {
   name  = var.KKE_SSM_PARAM_NAME
   type  = "String"
-  value = "arn:aws:sns:us-east-1:000000000000:${var.KKE_SNS_TOPIC_NAME}"
+  value = "arn:aws:sns:us-east-1:000000000000:\${var.KKE_SNS_TOPIC_NAME}"
 }
 EOF
 
