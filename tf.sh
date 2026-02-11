@@ -108,7 +108,7 @@ data "aws_ssm_parameter" "sns_param" {
 }
 
 resource "aws_iam_role" "KKE_STEP_FUNCTION_NAME" {
-  name = var.KKE_STEP_FUNCTION_NAME
+  name = "\${var.KKE_STEP_FUNCTION_NAME}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -124,24 +124,24 @@ resource "aws_iam_role" "KKE_STEP_FUNCTION_NAME" {
   })
 }
 
-# resource "aws_iam_policy" "KKE_STEP_FUNCTION_NAME" {
-#   name = var.KKE_STEP_FUNCTION_NAME
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action = "ssm:GetParameter"
-#         Effect = "Allow"
-#         Resource = "*"
-#       },
-#     ]
-#   })
-# }
+resource "aws_iam_policy" "KKE_STEP_FUNCTION_NAME" {
+  name = var.KKE_STEP_FUNCTION_NAME
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "ssm:GetParameter"
+        Effect = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
 
-# resource "aws_iam_role_policy_attachment" "KKE_STEP_FUNCTION_NAME" {
-#   role       = aws_iam_role.KKE_STEP_FUNCTION_NAME.name
-#   policy_arn = aws_iam_policy.KKE_STEP_FUNCTION_NAME.arn
-# }
+resource "aws_iam_role_policy_attachment" "KKE_STEP_FUNCTION_NAME" {
+  role       = aws_iam_role.KKE_STEP_FUNCTION_NAME.name
+  policy_arn = aws_iam_policy.KKE_STEP_FUNCTION_NAME.arn
+}
 
 resource "aws_sfn_state_machine" "KKE_STEP_FUNCTION_NAME" {
   name     = var.KKE_STEP_FUNCTION_NAME
