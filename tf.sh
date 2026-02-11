@@ -104,7 +104,7 @@ EOF
 
 cat << EOF > modules/stepfunctions/main.tf
 resource "aws_iam_role" "KKE_STEP_FUNCTION_NAME" {
-  name = "{var.KKE_STEP_FUNCTION_NAME}-role"
+  name = "\${var.KKE_STEP_FUNCTION_NAME}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
