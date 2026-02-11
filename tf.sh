@@ -104,7 +104,7 @@ EOF
 
 cat << EOF > modules/stepfunctions/main.tf
 resource "aws_iam_role" "KKE_STEP_FUNCTION_NAME" {
-  name = "\${var.KKE_STEP_FUNCTION_NAME}-role"
+  name = var.KKE_STEP_FUNCTION_NAME
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -143,20 +143,25 @@ resource "aws_sfn_state_machine" "KKE_STEP_FUNCTION_NAME" {
   name     = var.KKE_STEP_FUNCTION_NAME
   role_arn = aws_iam_role.KKE_STEP_FUNCTION_NAME.arn
 
-  definition = jsonencode({
-    Comment = "Step Function using SSM parameter"
-    StartAt = "Start"
-    States = {
-      Start = {
-        Type = "Task"
-        Resource = "arn:aws:states:::aws-sdk:ssm:getParameter"
-        Parameters = {
-          Name = var.KKE_SSM_PARAM_NAME
-        }
-        End = true
-      }
+  definition = <<EOOF
+{
+  "Comment": "Step Function using SSM parameter",
+  "StartAt": "Start",
+  "States": {
+    "Start": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "Parameters": {
+        Name = var.KKE_SSM_PARAM_NAME
+      },
+      "ResultSelector": {
+        "SnsArn.\$": "\$.Parameter.Value"
+      },
+      "End": true
     }
-  })
+  }
+}
+EOOF
 }
 EOF
 
