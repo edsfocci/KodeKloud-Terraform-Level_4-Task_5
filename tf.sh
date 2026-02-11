@@ -21,9 +21,9 @@ ln -s /home/bob/terraform/variables.tf modules/ssm/variables.tf
 ln -s /home/bob/terraform/variables.tf modules/stepfunctions/variables.tf
 
 cat << EOF > terraform.tfvars
-KKE_SNS_TOPIC_NAME = "devops-sns-topic"
-KKE_SSM_PARAM_NAME = "devops-param"
-KKE_STEP_FUNCTION_NAME = "devops-stepfunction"
+KKE_SNS_TOPIC_NAME = "datacenter-sns-topic"
+KKE_SSM_PARAM_NAME = "datacenter-param"
+KKE_STEP_FUNCTION_NAME = "datacenter-stepfunction"
 EOF
 
 cat << EOF > outputs.tf
@@ -124,41 +124,48 @@ resource "aws_iam_role" "KKE_STEP_FUNCTION_NAME" {
   })
 }
 
-resource "aws_iam_policy" "KKE_STEP_FUNCTION_NAME" {
-  name = var.KKE_STEP_FUNCTION_NAME
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "ssm:GetParameter"
-        Effect = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
+# resource "aws_iam_policy" "KKE_STEP_FUNCTION_NAME" {
+#   name = var.KKE_STEP_FUNCTION_NAME
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "ssm:GetParameter"
+#         Effect = "Allow"
+#         Resource = "*"
+#       },
+#     ]
+#   })
+# }
 
-resource "aws_iam_role_policy_attachment" "KKE_STEP_FUNCTION_NAME" {
-  role       = aws_iam_role.KKE_STEP_FUNCTION_NAME.name
-  policy_arn = aws_iam_policy.KKE_STEP_FUNCTION_NAME.arn
-}
+# resource "aws_iam_role_policy_attachment" "KKE_STEP_FUNCTION_NAME" {
+#   role       = aws_iam_role.KKE_STEP_FUNCTION_NAME.name
+#   policy_arn = aws_iam_policy.KKE_STEP_FUNCTION_NAME.arn
+# }
 
 resource "aws_sfn_state_machine" "KKE_STEP_FUNCTION_NAME" {
   name     = var.KKE_STEP_FUNCTION_NAME
   role_arn = aws_iam_role.KKE_STEP_FUNCTION_NAME.arn
 
-  definition = jsonencode({
-    StartAt = "ReadSSM"
-    States = {
-      ReadSSM = {
-        Type   = "Pass"
-        Result = {
-          SnsArn = data.aws_ssm_parameter.sns_param.value
-        }
-        End = true
-      }
+  definition = <<EOOF
+{
+  "Comment": "Step Function using SSM parameter",
+  "StartAt": "Start",
+  "States": {
+    "Start": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "Parameters": {
+        "Name": "\${var.KKE_SSM_PARAM_NAME}"
+      },
+      "ResultSelector": {
+        "SnsArn.\$": "\$.Parameter.Value"
+      },
+      "End": true
     }
-  })
+  }
+}
+EOOF
 }
 EOF
 
